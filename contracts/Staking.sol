@@ -4,7 +4,6 @@ pragma solidity ^0.8.9;
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./SBGG.sol";
 import "./EBGG.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -150,7 +149,7 @@ contract Staking is AccessControl, ERC20 {
         accounts[msg.sender].missedReward += amountWithWeight * tps;
         totalAmountStakeWithWeight += amountWithWeight;
         totalAmountStake += _amount;
-        mint(msg.sender, amountWithWeight);
+        _mint(msg.sender, amountWithWeight);
         emit Stake(msg.sender, _amount, amountWithWeight);
     }
 
@@ -166,7 +165,7 @@ contract Staking is AccessControl, ERC20 {
         uint256 amountWithWeight = stakes[msg.sender][_idStake].amountWithWeight;
         uint256 amount = stakes[msg.sender][_idStake].amount;
         IERC20(BGGAddress).safeTransfer(msg.sender, amount);
-        burn(msg.sender, amountWithWeight);
+        _burn(msg.sender, amountWithWeight);
         update();
         EBGG(rewardAddress).mint(msg.sender, (tps *
             accounts[msg.sender].amountStakesWithWeight -
@@ -273,12 +272,12 @@ contract Staking is AccessControl, ERC20 {
                 amountOfDuration;
     }
 
-    function mint(address to, uint256 amount) internal {
+    function mint(address to, uint256 amount) public onlyRole(ADMIN_ROLE) {
         _mint(to, amount);
     }
 
-    function burn(address from, uint256 amount) internal {
-        _mint(from, amount);
+    function burn(address from, uint256 amount) public onlyRole(ADMIN_ROLE) {
+        _burn(from, amount);
     }
 
     function setAdminRole(address user) public onlyRole(DEFAULT_ADMIN_ROLE) {

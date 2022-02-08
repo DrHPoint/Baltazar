@@ -174,7 +174,7 @@ describe("Hermes", function () {
 
       await stak.connect(addr1).claim();
 
-      expect(await reward.connect(addr1).balanceOf(addr1.address)).to.closeTo(parseUnits("333.333", 18), 1e15);
+      expect(await reward.connect(addr1).balanceOf(addr1.address)).to.closeTo(parseUnits("334.126", 18), 1e15);
     });
 
     it("4) After 15 week", async function() {
@@ -184,7 +184,7 @@ describe("Hermes", function () {
 
       await stak.connect(addr2).claim();
 
-      expect(await reward.connect(addr2).balanceOf(addr2.address)).to.closeTo(parseUnits("999.999", 18), 1e15);
+      expect(await reward.connect(addr2).balanceOf(addr2.address)).to.closeTo(parseUnits("1002.777", 18), 1e15);
     });
 
     it("5) After 20 week", async function() {
@@ -195,8 +195,8 @@ describe("Hermes", function () {
       await stak.connect(addr1).unstake(0);
       await stak.connect(addr2).unstake(1);
 
-      expect(await reward.connect(addr1).balanceOf(addr1.address)).to.closeTo(parseUnits("666.666", 18), 1e15);
-      expect(await reward.connect(addr2).balanceOf(addr2.address)).to.closeTo(parseUnits("1333.333", 18), 1e15);
+      expect(await reward.connect(addr1).balanceOf(addr1.address)).to.closeTo(parseUnits("668.452", 18), 1e15);
+      expect(await reward.connect(addr2).balanceOf(addr2.address)).to.closeTo(parseUnits("1336.904", 18), 1e15);
 
       expect(await stak.connect(addr1).balanceOf(addr1.address)).to.equal(0);
       expect(await stak.connect(addr2).balanceOf(addr2.address)).to.equal(0);

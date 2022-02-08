@@ -6,6 +6,8 @@ import { ethers } from "hardhat";
 import { hexConcat } from "@ethersproject/bytes";
 import "@nomiclabs/hardhat-waffle";
 import "solidity-coverage";
+import "hardhat-docgen";
+import "hardhat-gas-reporter";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-web3";
 import "./tasks";
