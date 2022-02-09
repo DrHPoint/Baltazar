@@ -108,8 +108,6 @@ contract Staking is AccessControl, ERC20 {
         require (_epochDuration >= _minReceiveRewardDuration);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN_ROLE, msg.sender);
-        _grantRole(DEFAULT_ADMIN_ROLE, address(this));
-        _grantRole(ADMIN_ROLE, address(this));
         rewardAtEpoch = _rewardAtEpoch;
         epochDuration = _epochDuration;
         BGGAddress = _BGGAddress;
@@ -153,11 +151,11 @@ contract Staking is AccessControl, ERC20 {
         emit Stake(msg.sender, _amount, amountWithWeight);
     }
 
-    /** EDIT
-    * @notice With this function user can unstake some amount of token from contract.
+    /** 
+    * @notice With this function user can unstake stake of token with some id from contract.
     * @dev It is worth paying attention to the fact that the accumulated rewards 
     are stored in the parameter "accumulate". 
-    * @param _idStake is an amount of tokens which stakes to contract.
+    * @param _idStake is the id stake of tokens which stakes to contract before.
     */
     function unstake(uint256 _idStake) external {
         require(stakes[msg.sender][_idStake].status, "Stake is unstaked or it's not user stake");
