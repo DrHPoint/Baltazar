@@ -30,7 +30,7 @@ describe("Hermes", function () {
     it("0) Deploy, mint and get allowance", async function() {
       [owner, addr1, addr2, addr3, addr4] = await ethers.getSigners();
       token = await ERC20.connect(owner).deploy();
-      reward = await Reward.connect(owner).deploy();
+      reward = await Reward.connect(owner).deploy(token.address);
       stak = await Staking.connect(owner).deploy(token.address, reward.address, parseUnits("500", 18), 7 * 24 * 3600, 7 * 24 * 3600);
 
     });
@@ -135,7 +135,7 @@ describe("Hermes", function () {
     it("0) Deploy, mint and get allowance", async function() {
       [owner, addr1, addr2, addr3, addr4] = await ethers.getSigners();
       token = await ERC20.connect(owner).deploy();
-      reward = await Reward.connect(owner).deploy();
+      reward = await Reward.connect(owner).deploy(token.address);
       stak = await Staking.connect(owner).deploy(token.address, reward.address, parseUnits("100", 18), 7 * 24 * 3600, 3600);
     });
 
@@ -148,6 +148,7 @@ describe("Hermes", function () {
     it("1.2) Mint", async function() {
       await token.connect(owner).mint(addr1.address, parseUnits("100", 18));
       await token.connect(owner).mint(addr2.address, parseUnits("200", 18));
+      await token.connect(owner).mint(reward.address, parseUnits("1234567890", 18));
     });
 
     it("1.3) Get allowance", async function() {
@@ -205,14 +206,22 @@ describe("Hermes", function () {
       expect(await token.connect(addr2).balanceOf(addr2.address)).to.equal(parseUnits("200", 18));
     });
 
-    // it("4) Check Rewards on next day", async function() {
-    //   await ethers.provider.send("evm_increaseTime", [2 * 7 * 24 * 3610]);
-    //   await ethers.provider.send("evm_mine", []);
-    //   let account;
-    //   let reward;
-    //   const rewq = await stak.getAccount(addr1.address);
-    //   //expect(await rewq.reward).to.closeTo(parseUnits("614.015", 18), 1e15);
-    // });
+    it("4) Swap EBGG to BGG after 365 days", async function() {
+      await ethers.provider.send("evm_increaseTime", [365 * 24 * 3600]);
+      await ethers.provider.send("evm_mine", []);
+
+      await reward.connect(addr1).swap();
+      await reward.connect(addr2).swap();
+
+      await reward.connect(addr1).swap();
+      await reward.connect(addr2).swap();
+      
+      expect(await reward.connect(addr1).balanceOf(addr1.address)).to.equal(0);
+      expect(await reward.connect(addr2).balanceOf(addr2.address)).to.equal(0);
+
+      expect(await token.connect(addr1).balanceOf(addr1.address)).to.closeTo(parseUnits("768.452", 18), 1e15);
+      expect(await token.connect(addr2).balanceOf(addr2.address)).to.closeTo(parseUnits("1536.904", 18), 1e15);
+    });
 
     // it("5) Try to Claim Rewards", async function() {
     //   await stak.connect(addr1).claim();

@@ -175,7 +175,7 @@ contract Staking is AccessControl, ERC20 {
             acc.amountStakesWithWeight;
         totalAmountStake -= amount;
         totalAmountStakeWithWeight -= amountWithWeight;
-        accountsToStakes[msg.sender].remove(stakeId++);
+        accountsToStakes[msg.sender].remove(_idStake);
         emit Unstake(msg.sender, amount, claiming);
     }
 
