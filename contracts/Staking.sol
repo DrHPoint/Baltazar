@@ -76,17 +76,17 @@ contract Staking is AccessControl, ERC20 {
     uint256 public tps;
     uint256 public rewardAtEpoch;
     uint128 public epochDuration;
+
     uint128 private minReceiveRewardDuration; //the minimum period of time for which the reward is received
-
-    address public BGGAddress;
-    address public rewardAddress;
-
     uint256 private precision = 1e18;
     uint256 private maxLockDuration = 52 weeks; 
     uint256 private lastTimeEditedTPS;
     uint256 private stakeId = 0;
     uint256 private totalAmountStake;
     uint256 private totalAmountStakeWithWeight;
+
+    address public BGGAddress;
+    address public rewardAddress;
 
     mapping(address => Account) public accounts;
     mapping(address => mapping(uint256 => StakeInfo)) private stakes;
