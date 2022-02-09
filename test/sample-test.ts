@@ -213,9 +213,6 @@ describe("Hermes", function () {
       await reward.connect(addr1).swap();
       await reward.connect(addr2).swap();
 
-      await reward.connect(addr1).swap();
-      await reward.connect(addr2).swap();
-      
       expect(await reward.connect(addr1).balanceOf(addr1.address)).to.equal(0);
       expect(await reward.connect(addr2).balanceOf(addr2.address)).to.equal(0);
 

@@ -56,11 +56,18 @@ contract EBGG is ERC20, AccessControl {
     }
 
     function swap() public{
+        require(currentPoint[msg.sender] < clames[msg.sender].length, "All claimes swaped");
         Clame storage clame = clames[msg.sender][currentPoint[msg.sender]];
         require(clame.blockingPeriod <= block.timestamp, "For earliest clame swap yet not awailable");
-        _burn(msg.sender, clame.amountClame);
-        ERC20(generalTokenAddress).safeTransfer(msg.sender, clame.amountClame);
-        currentPoint[msg.sender]++;
+        uint256 summaryAmount;
+        while((clame.blockingPeriod <= block.timestamp) && (currentPoint[msg.sender] < clames[msg.sender].length))
+        {
+            clame = clames[msg.sender][currentPoint[msg.sender]];
+            summaryAmount += clame.amountClame;
+            currentPoint[msg.sender]++;
+        }
+        _burn(msg.sender, summaryAmount);
+        ERC20(generalTokenAddress).safeTransfer(msg.sender, summaryAmount);
     }
 }
 
