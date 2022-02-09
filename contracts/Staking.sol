@@ -32,8 +32,9 @@ contract Staking is AccessControl, ERC20 {
      * @notice Shows that the user unstake some tokens from contract.
      * @param user is the address of user.
      * @param amount is an amount of tokens which unstakes from contract.
+     * @param claimAmount is an amount of reward tokens which claim from contract.
      */
-    event Unstake(address user, uint256 amount);
+    event Unstake(address user, uint256 amount, uint256 claimAmount);
 
     /** EDIT
      * @notice Shows that the user claim some reward tokens from contract.
@@ -60,31 +61,30 @@ contract Staking is AccessControl, ERC20 {
         address BGGAddress;
         address rewardAddress;
         uint256 rewardAtEpoch;
-        uint256 epochDuration;
-        uint256 minReceiveRewardDuration;
+        uint128 epochDuration;
+        uint128 minReceiveRewardDuration;
     }
 
     struct StakeInfo{
         uint256 blockingPeriod;
         uint256 amount;
         uint256 amountWithWeight;
-        bool status;
     }
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     uint256 public tps;
     uint256 public rewardAtEpoch;
-    uint256 public epochDuration;
+    uint128 public epochDuration;
+    uint128 private minReceiveRewardDuration; //the minimum period of time for which the reward is received
 
     address public BGGAddress;
     address public rewardAddress;
 
     uint256 private precision = 1e18;
-    uint256 public maxLockDuration = 52 weeks; 
+    uint256 private maxLockDuration = 52 weeks; 
     uint256 private lastTimeEditedTPS;
     uint256 private stakeId = 0;
-    uint256 private minReceiveRewardDuration; //the minimum period of time for which the reward is received
     uint256 private totalAmountStake;
     uint256 private totalAmountStakeWithWeight;
 
@@ -96,8 +96,8 @@ contract Staking is AccessControl, ERC20 {
         address _BGGAddress,
         address _rewardAddress,
         uint256 _rewardAtEpoch,
-        uint256 _epochDuration,
-        uint256 _minReceiveRewardDuration
+        uint128 _epochDuration,
+        uint128 _minReceiveRewardDuration
     ) ERC20(
         "SBGG", 
         "SBGG"
@@ -136,8 +136,7 @@ contract Staking is AccessControl, ERC20 {
         stakes[msg.sender][stakeId] = (StakeInfo(
             block.timestamp + _blockingPeriod,
             _amount,
-            amountWithWeight,
-            true
+            amountWithWeight
         ));
         accountsToStakes[msg.sender].add(stakeId++);
         IERC20(BGGAddress).safeTransferFrom(msg.sender, address(this), _amount);
@@ -158,25 +157,26 @@ contract Staking is AccessControl, ERC20 {
     * @param _idStake is the id stake of tokens which stakes to contract before.
     */
     function unstake(uint256 _idStake) external {
-        require(stakes[msg.sender][_idStake].status, "Stake is unstaked or it's not user stake");
         require(stakes[msg.sender][_idStake].blockingPeriod <= block.timestamp, "Too early to unstake stake with this address");
         uint256 amountWithWeight = stakes[msg.sender][_idStake].amountWithWeight;
         uint256 amount = stakes[msg.sender][_idStake].amount;
         IERC20(BGGAddress).safeTransfer(msg.sender, amount);
         _burn(msg.sender, amountWithWeight);
         update();
-        EBGG(rewardAddress).mint(msg.sender, (tps *
-            accounts[msg.sender].amountStakesWithWeight -
-            accounts[msg.sender].missedReward) / precision);
-        accounts[msg.sender].amountStakesWithWeight -= amountWithWeight;
-        accounts[msg.sender].amountStake -= amount;
-        accounts[msg.sender].missedReward =
+        Account storage acc = accounts[msg.sender];
+        uint256 claiming = (tps *
+            acc.amountStakesWithWeight -
+            acc.missedReward) / precision;
+        EBGG(rewardAddress).mint(msg.sender, claiming);
+        acc.amountStakesWithWeight -= amountWithWeight;
+        acc.amountStake -= amount;
+        acc.missedReward =
             tps *
-            accounts[msg.sender].amountStakesWithWeight;
+            acc.amountStakesWithWeight;
         totalAmountStake -= amount;
         totalAmountStakeWithWeight -= amountWithWeight;
         accountsToStakes[msg.sender].remove(stakeId++);
-        emit Unstake(msg.sender, amount);
+        emit Unstake(msg.sender, amount, claiming);
     }
 
     ///@notice With this function user can claim some amount of reward tokens from contract.  EDIT++
@@ -199,8 +199,8 @@ contract Staking is AccessControl, ERC20 {
      */
     function setParametres(
         uint256 _reward,
-        uint256 _epochDuration,
-        uint256 _minReceiveRewardDuration
+        uint128 _epochDuration,
+        uint128 _minReceiveRewardDuration
     ) external onlyRole(ADMIN_ROLE) checkEpoch(
         _epochDuration,
         _minReceiveRewardDuration
