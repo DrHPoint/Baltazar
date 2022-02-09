@@ -152,8 +152,8 @@ describe("Hermes", function () {
     });
 
     it("1.3) Get allowance", async function() {
-      await token.connect(addr1).approve(stak.address, parseUnits("100", 18));
-      await token.connect(addr2).approve(stak.address, parseUnits("200", 18));
+      await token.connect(addr1).approve(stak.address, parseUnits("200", 18));
+      await token.connect(addr2).approve(stak.address, parseUnits("400", 18));
     });
 
     it("1.4) Get roles", async function() {
@@ -206,8 +206,84 @@ describe("Hermes", function () {
       expect(await token.connect(addr2).balanceOf(addr2.address)).to.equal(parseUnits("200", 18));
     });
 
-    it("4) Swap EBGG to BGG after 365 days", async function() {
-      await ethers.provider.send("evm_increaseTime", [365 * 24 * 3600]);
+
+
+
+
+
+
+
+
+    it("2*2) Stake and check sbgg balance", async function() {
+      
+      await stak.connect(addr1).stake(parseUnits("100", 18), 20 * 7 * 24 * 3600);
+      await stak.connect(addr2).stake(parseUnits("200", 18), 20 * 7 * 24 * 3600);
+
+      // expect(await stak.connect(addr1).balanceOf(addr1.address)).to.closeTo(parseUnits("138.461", 18), 1e15);
+      // expect(await stak.connect(addr2).balanceOf(addr2.address)).to.closeTo(parseUnits("276.923", 18), 1e15);
+    });
+
+    it("3*2) After 10 week", async function() {
+
+      await ethers.provider.send("evm_increaseTime", [10 * 7 * 24 * 3610]);
+      await ethers.provider.send("evm_mine", []);
+
+      await stak.connect(addr1).claim();
+
+      // expect(await reward.connect(addr1).balanceOf(addr1.address)).to.closeTo(parseUnits("334.126", 18), 1e15);
+    });
+
+    it("4*2) After 15 week", async function() {
+
+      await ethers.provider.send("evm_increaseTime", [5 * 7 * 24 * 3610]);
+      await ethers.provider.send("evm_mine", []);
+
+      await stak.connect(addr2).claim();
+
+      // expect(await reward.connect(addr2).balanceOf(addr2.address)).to.closeTo(parseUnits("1002.777", 18), 1e15);
+    });
+
+    it("5*2) After 20 week", async function() {
+
+      await ethers.provider.send("evm_increaseTime", [5 * 7 * 24 * 3610]);
+      await ethers.provider.send("evm_mine", []);
+
+      await stak.connect(addr1).unstake(0);
+      await stak.connect(addr2).unstake(1);
+
+      // expect(await reward.connect(addr1).balanceOf(addr1.address)).to.closeTo(parseUnits("668.452", 18), 1e15);
+      // expect(await reward.connect(addr2).balanceOf(addr2.address)).to.closeTo(parseUnits("1336.904", 18), 1e15);
+
+      // expect(await stak.connect(addr1).balanceOf(addr1.address)).to.equal(0);
+      // expect(await stak.connect(addr2).balanceOf(addr2.address)).to.equal(0);
+
+      // expect(await token.connect(addr1).balanceOf(addr1.address)).to.equal(parseUnits("100", 18));
+      // expect(await token.connect(addr2).balanceOf(addr2.address)).to.equal(parseUnits("200", 18));
+    });
+
+
+
+
+
+
+
+    it("6) Swap EBGG to BGG after 365 days", async function() {
+      await ethers.provider.send("evm_increaseTime", [225 * 24 * 3600]);
+      await ethers.provider.send("evm_mine", []);
+
+      await reward.connect(addr1).swap();
+      await reward.connect(addr2).swap();
+
+      expect(await reward.connect(addr1).balanceOf(addr1.address)).to.closeTo(parseUnits("668.452", 18), 1e15);
+      expect(await reward.connect(addr2).balanceOf(addr2.address)).to.closeTo(parseUnits("1336.904", 18), 1e15);
+
+      expect(await token.connect(addr1).balanceOf(addr1.address)).to.closeTo(parseUnits("768.452", 18), 1e15);
+      expect(await token.connect(addr2).balanceOf(addr2.address)).to.closeTo(parseUnits("1536.904", 18), 1e15);
+
+
+
+
+      await ethers.provider.send("evm_increaseTime", [140 * 24 * 3600]);
       await ethers.provider.send("evm_mine", []);
 
       await reward.connect(addr1).swap();
@@ -216,25 +292,9 @@ describe("Hermes", function () {
       expect(await reward.connect(addr1).balanceOf(addr1.address)).to.equal(0);
       expect(await reward.connect(addr2).balanceOf(addr2.address)).to.equal(0);
 
-      expect(await token.connect(addr1).balanceOf(addr1.address)).to.closeTo(parseUnits("768.452", 18), 1e15);
-      expect(await token.connect(addr2).balanceOf(addr2.address)).to.closeTo(parseUnits("1536.904", 18), 1e15);
+      expect(await token.connect(addr1).balanceOf(addr1.address)).to.closeTo(parseUnits("1436.904", 18), 1e15);
+      expect(await token.connect(addr2).balanceOf(addr2.address)).to.closeTo(parseUnits("2873.809", 18), 1e15);
     });
-
-    // it("5) Try to Claim Rewards", async function() {
-    //   await stak.connect(addr1).claim();
-
-    //   expect(await reward.connect(addr1).balanceOf(addr1.address)).to.closeTo(parseUnits("614.015", 18), 1e15);
-    // });
-
-    // it("6) Get View Data", async function() {
-    //   const viewData = await stak.connect(owner).getViewData();
-    //   expect(await viewData.BGGAddress).to.equal(token.address);
-    //   expect(await viewData.SBGGAddress).to.equal(sbgg.address);
-    //   expect(await viewData.rewardAddress).to.equal(reward.address);
-    //   expect(await viewData.rewardAtEpoch).to.equal(parseUnits("100", 18));
-    //   expect(await viewData.epochDuration).to.equal(604800);
-    //   expect(await viewData.minReceiveRewardDuration).to.equal(604800);
-    // });
   });
 
 });
