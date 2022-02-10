@@ -244,7 +244,7 @@ contract Staking is AccessControl, ERC20 {
     function getAccount(address _account)
         external
         view
-        returns (Account memory account, uint reward)
+        returns (Account memory account, uint reward, uint256[] memory numberStakes, StakeInfo[] memory acccountStakes)
     {
         account = (Account(
             accounts[_account].amountStake,
@@ -252,6 +252,13 @@ contract Staking is AccessControl, ERC20 {
             accounts[_account].missedReward
         ));
         reward = availableReward(_account);
+        uint256 pointer = accountsToStakes[_account].length();
+        numberStakes = new uint256[](pointer);
+        acccountStakes = new StakeInfo[](pointer);
+        for(uint256 i=0; i<pointer; i++) {
+            numberStakes[i] = accountsToStakes[_account].at(i);
+            acccountStakes[i] = stakes[_account][numberStakes[i]];
+        }
     }
 
     /**

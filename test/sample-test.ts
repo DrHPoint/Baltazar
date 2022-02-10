@@ -193,6 +193,10 @@ describe("Hermes", function () {
       await ethers.provider.send("evm_increaseTime", [5 * 7 * 24 * 3600]);
       await ethers.provider.send("evm_mine", []);
 
+      const rewq = await stak.getAccount(addr2.address);
+      expect(rewq.numberStakes[0]).to.equal(1);
+      expect(rewq.acccountStakes[0].amount).to.equal(parseUnits("200", 18));
+
       await stak.connect(addr1).unstake(0);
       await stak.connect(addr2).unstake(1);
 
